@@ -1,34 +1,37 @@
-name: Node.js CI/CD on Amazon Linux
+name: CI/CD Pipeline for Express App
 
 on:
   push:
-    branches: [ master ]
+    branches:
+      - master  # Ejecutar en pushes a la rama principal
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Install dependencies
-      run: npm install
+      - name: Set up SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}  # Secreto de GitHub para la clave privada
 
-    - name: Deploy to AWS EC2
-      uses: appleboy/scp-action@master
-      with:
-        host: ${{ secrets.REMOTE_HOST }}
-        username: ${{ secrets.REMOTE_USER }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        source: "./"  # This now correctly points to the current directory
-        target: "/var/www/proyecto"
+      - name: Add EC2 to known hosts
+        run: |
+          ssh-keyscan -H ${{ secrets.REMOTE_HOST }} >> ~/.ssh/known_hosts
 
-    - name: Restart PM2 application
-      uses: appleboy/ssh-action@master
-      with:
-        host: ${{ secrets.REMOTE_HOST }}
-        username: ${{ secrets.REMOTE_USER }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        script: |
-          cd /var/www/proyecto
-          pm2 reload all  # This command restarts your application
+      - name: Install dependencies
+        run: |
+          npm install
+
+      - name: Deploy to EC2
+        run: |
+          ssh -o StrictHostKeyChecking=no ec2-user@${{ secrets.REMOTE_HOST }} "cd /var/www/proyecto && git pull && npm install && pm2 restart all"
+        env:
+          REMOTE_HOST: ${{ secrets.REMOTE_HOST }}  # IP pública de EC2
+
