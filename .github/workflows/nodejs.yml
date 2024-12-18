@@ -18,8 +18,8 @@ jobs:
           mkdir -p ~/.ssh
           echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-      env:
-        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}  # Secreto de GitHub para la clave privada
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}  # Secreto de GitHub para la clave privada
 
       - name: Add EC2 to known hosts
         run: |
@@ -34,3 +34,4 @@ jobs:
           ssh -o StrictHostKeyChecking=no ec2-user@${{ secrets.REMOTE_HOST }} "cd /var/www/proyecto && git pull && npm install && pm2 restart all"
         env:
           REMOTE_HOST: ${{ secrets.REMOTE_HOST }}  # IP pública de EC2
+
