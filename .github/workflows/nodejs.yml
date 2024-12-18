@@ -31,10 +31,7 @@ jobs:
 
       - name: Deploy to EC2
         run: |
-          ssh -o StrictHostKeyChecking=no ec2-user@${{ secrets.REMOTE_HOST }} << 'EOF'
-            cd /var/www/proyecto  # Cambia al directorio de tu proyecto
-            git pull origin main  # Realiza el pull de la rama principal
-          EOF
+          ssh -o StrictHostKeyChecking=no ec2-user@${{ secrets.REMOTE_HOST }} "cd /var/www/proyecto && git pull && npm install && pm2 restart all"
         env:
           REMOTE_HOST: ${{ secrets.REMOTE_HOST }}  # IP pública de EC2
 
