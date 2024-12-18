@@ -31,7 +31,7 @@ jobs:
 
       - name: Deploy to EC2
         run: |
-          ssh -o StrictHostKeyChecking=no ec2-user@${{ secrets.REMOTE_HOST }} "cd /var/www/proyecto && git pull && npm install && pm2 restart all"
+          ssh -o StrictHostKeyChecking=no ec2-user@${{ secrets.REMOTE_HOST }} "cd /var/www/proyecto2 && git pull && npm install && pm2 restart all"
         env:
           REMOTE_HOST: ${{ secrets.REMOTE_HOST }}  # IP pública de EC2
 
